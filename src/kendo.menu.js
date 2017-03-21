@@ -2130,6 +2130,7 @@ var __meta__ = { // jshint ignore:line
                 });
 
                 that._initPopupScrollButtons(popup, isHorizontal, true);
+                popup.element.siblings(scrollButtonSelector).hide();
             }
         },
 
