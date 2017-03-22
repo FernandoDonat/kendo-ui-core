@@ -465,6 +465,11 @@ var __meta__ = { // jshint ignore:line
         return allPointers && e.originalEvent.pointerType in touchPointerTypes;
     }
 
+    function isTouch(e){
+        var ev = e.originalEvent;
+        return touch && /touch/i.test(ev.type || "");
+    }
+
     var Menu = Widget.extend({
         init: function(element, options) {
             var that = this;
@@ -697,6 +702,7 @@ var __meta__ = { // jshint ignore:line
             var backwardDouble = "-=" + distance * 2;
             var forwardDouble = "+=" + distance * 2;
             var scrolling = false;
+            var touchEvents = false;
 
             var scroll = function(value) {
                 var scrollValue = isHorizontal ? {"scrollLeft": value} : { "scrollTop": value };
@@ -709,7 +715,7 @@ var __meta__ = { // jshint ignore:line
             };
 
             var mouseenterHandler = function(e) {
-                if (!scrolling) {
+                if (!scrolling && !touchEvents) {
                     scroll(e.data.direction);
                     scrolling = true;
                 }
@@ -717,8 +723,14 @@ var __meta__ = { // jshint ignore:line
 
             var mousedownHandler = function(e) {
                 var scrollValue = isHorizontal ? {"scrollLeft": e.data.direction} : { "scrollTop": e.data.direction };
+                touchEvents = isTouch(e) || isPointerTouch(e);
                 scrollElement.stop().animate(scrollValue, "fast", "linear", function(){
-                    $(e.currentTarget).trigger(MOUSEENTER);
+                    if (!touchEvents) {
+                        $(e.currentTarget).trigger(MOUSEENTER);
+                    } else {
+                         that._toggleScrollButtons(scrollElement, backwardBtn, forwardBtn, isHorizontal);
+                         scrolling = true;
+                    }
                 });
                 scrolling = false;
 
@@ -1056,7 +1068,7 @@ var __meta__ = { // jshint ignore:line
                                             li.parent().siblings(scrollButtonSelector).css({zIndex: ""});
                                         }
 
-                                        if (touch) {
+                                        if (touch || allPointers) {
                                             li.removeClass(HOVERSTATE);
                                             that._removeHoverItem();
                                         }
@@ -1353,7 +1365,7 @@ var __meta__ = { // jshint ignore:line
                 }
             }
 
-            if (that.options.openOnClick && that.clicked || touch || pointerTouch) {
+            if (that.options.openOnClick && that.clicked || touch) {
                 element.siblings().each(proxy(function (_, sibling) {
                     that.close(sibling, true);
                 }, that));
@@ -1402,7 +1414,7 @@ var __meta__ = { // jshint ignore:line
             var that = this;
             var popupElement = $(e.currentTarget);
 
-            if (popupElement.is(animationContainerSelector)) {
+            if (!isPointerTouch(e) && popupElement.is(animationContainerSelector)) {
                 that._closePopups(popupElement.children("ul"));
             }
         },
@@ -2212,21 +2224,23 @@ var __meta__ = { // jshint ignore:line
         _closeHandler: function (e) {
             var that = this,
                 target = $(e.relatedTarget || e.target),
-				sameTarget = target.closest(that.target.selector)[0] == that.target[0],
-                children = target.closest(itemSelector).children(popupSelector),
-                containment = contains(that.element[0], target[0]);
+                sameTarget = target.closest(that.target.selector)[0] == that.target[0],
+                item = target.closest(itemSelector),
+                children = that._itemHasChildren(item),
+                overflowWrapper = that._overflowWrapper(),
+                containment = contains(that.element[0], target[0]) || (overflowWrapper && contains(overflowWrapper[0], target[0]));
 
             that._eventOrigin = e;
 
             var normalClick = e.which !== 3;
 
-            if (that.popup.visible() && ((normalClick && sameTarget) || !sameTarget) && ((that.options.closeOnClick && !children[0] && containment) || !containment)) {
-                    if (containment) {
-                        this.unbind(SELECT, this._closeTimeoutProxy);
-                        that.bind(SELECT, that._closeTimeoutProxy);
-                    } else {
-                        that.close();
-                    }
+            if (that.popup.visible() && ((normalClick && sameTarget) || !sameTarget) && ((that.options.closeOnClick && !children && containment) || !containment)) {
+                if (containment) {
+                    this.unbind(SELECT, this._closeTimeoutProxy);
+                    that.bind(SELECT, that._closeTimeoutProxy);
+                } else {
+                    that.close();
+                }
             }
         },
 
