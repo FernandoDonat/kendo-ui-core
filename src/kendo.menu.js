@@ -470,6 +470,10 @@ var __meta__ = { // jshint ignore:line
         return touch && /touch/i.test(ev.type || "");
     }
 
+    function removeSpacesBetweenItems(ul){
+        ul.contents().filter(function(){ return this.nodeName != "LI"; }).remove();
+    }
+
     var Menu = Widget.extend({
         init: function(element, options) {
             var that = this;
@@ -608,6 +612,9 @@ var __meta__ = { // jshint ignore:line
             if (options.scrollable) {
                 that._openedPopups = {};
                 that._scrollWrapper = that.element.wrap("<div class='k-menu-scroll-wrapper " + options.orientation + "'></div>").parent();
+                if (isHorizontal) {
+                    removeSpacesBetweenItems(that.element);
+                }
 
                 backwardBtn = $(templates.scrollButton({direction: isHorizontal ? "left" : "up"}));
                 forwardBtn = $(templates.scrollButton({direction: isHorizontal ? "right": "down"}));
@@ -2009,6 +2016,10 @@ var __meta__ = { // jshint ignore:line
 
                 that._popupsWrapper = (that.element.parent().is(animationContainerSelector) ? that.element.parent() : that.element)
                     .wrap("<div class='k-popups-wrapper " + options.orientation + "'></div>").parent();
+
+                if (that.options.orientation == "horizontal") {
+                    removeSpacesBetweenItems(that.element);
+                }
 
                 if (options.appendTo) {
                     options.appendTo.append(that._popupsWrapper);
