@@ -1010,6 +1010,9 @@ var __meta__ = { // jshint ignore:line
                         overflowPopup = that._getPopup(li);
                         ul = overflowPopup && overflowPopup.element;
                     }
+                    if (ul.is(":visible")) {
+                        return;
+                    }
 
                     if (ul[0] && that._triggerEvent({ item: li[0], type: OPEN }) === false) {
 
