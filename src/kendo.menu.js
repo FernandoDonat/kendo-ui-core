@@ -1192,7 +1192,8 @@ var __meta__ = { // jshint ignore:line
             var canFit = maxHeight + scrollTop > popupOuterHeight + popupOffsetTop;
 
             if (!canFit) {
-                popups.css({overflow: "hidden", height: (maxHeight - popupOffsetTop + scrollTop) + "px"});
+                var height = Math.min(maxHeight, maxHeight - popupOffsetTop + scrollTop);
+                popups.css({overflow: "hidden", height: height + "px"});
             }
         },
 
