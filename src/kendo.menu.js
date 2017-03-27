@@ -390,15 +390,21 @@ var __meta__ = { // jshint ignore:line
     }
     function getChildPopups (currentPopup, overflowWrapper) {
         var childPopupOpener = currentPopup.find(popupOpenerSelector());
-        var popupId = childPopupOpener.data(POPUP_OPENER_ATTR);
-        var popup = currentPopup;
         var result = [];
-        while(popupId) {
-            popup = overflowWrapper.find(popupGroupSelector(popupId));
-            result.push(popup);
-            childPopupOpener = popup.find(popupOpenerSelector());
-            popupId = childPopupOpener.data(POPUP_OPENER_ATTR);
-        }
+        childPopupOpener.each(function(i, opener){
+            opener = $(opener);
+            var popupId = opener.data(POPUP_OPENER_ATTR);
+            var popup = currentPopup;
+            while(popupId) {
+                popup = overflowWrapper.find(popupGroupSelector(popupId) + ":visible");
+                if (popup.length) {
+                    result.push(popup);
+                }
+                opener = popup.find(popupOpenerSelector());
+                popupId = opener.data(POPUP_OPENER_ATTR);
+            }
+        });
+
         return result;
     }
 
